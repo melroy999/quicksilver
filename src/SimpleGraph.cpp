@@ -25,23 +25,28 @@ uint32_t SimpleGraph::getNoEdges() const {
     return sum;
 };
 
-// sort on the second item in the pair (ascending order)
+// sort on the second item in the pair, then on the first (ascending order)
 bool sortPairs(const std::pair<uint32_t,uint32_t> &a, const std::pair<uint32_t,uint32_t> &b) {
-    return (a.second < b.second);
+    if (a.second < b.second) return true;
+    if (a.second == b.second) return a.first < b.first;
+    return false;
 }
 
 uint32_t SimpleGraph::getNoDistinctEdges() const {
     uint32_t sum = 0;
 
     for (std::vector<std::pair<uint32_t,uint32_t>> sourceVec : adj) {
+
         std::sort(sourceVec.begin(), sourceVec.end(), sortPairs);
 
         uint32_t currentTarget;
+        uint32_t currentLabel;
         for (std::pair<uint32_t,uint32_t> labelTgtPair: sourceVec) {
-            //  Only increment count when: currentTarget == NULL OR currentTarget != matched target
-            if (!currentTarget || currentTarget != labelTgtPair.second) {
+            //  Only increment count when: currentTarget == NULL OR currentTarget != matched target OR currentLabel != matched label
+            if (!currentTarget || currentTarget != labelTgtPair.second || currentLabel != labelTgtPair.first) {
                 ++sum;
                 currentTarget = labelTgtPair.second;
+                currentLabel = labelTgtPair.first;
             }
         }
     }
