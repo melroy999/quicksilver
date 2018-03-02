@@ -25,7 +25,7 @@ cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
         if(!g->adj[source].empty()) stats.noOut++;
     }
 
-    stats.noPaths = g->getNoDistinctEdges();
+    stats.noPaths = g->getNoEdges();
 
     for(int target = 0; target < g->getNoVertices(); target++) {
         if(!g->reverse_adj[target].empty()) stats.noIn++;
@@ -39,28 +39,31 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::project(uint32_t projectLabel, boo
     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
     out->setNoLabels(in->getNoLabels());
 
-    if(!inverse) {
-        // going forward
-        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-            for (auto labelTarget : in->adj[source]) {
+    for(uint32_t source = 0; source < in->getNoVertices(); source++) {
 
-                auto label = labelTarget.first;
-                auto target = labelTarget.second;
-
-                if (label == projectLabel)
-                    out->addEdge(source, target, label);
-            }
+        std::vector<std::pair<uint32_t,uint32_t>> sourceVec;
+        if(!inverse) {
+            sourceVec = in->adj[source];
+        } else {
+            sourceVec = in->reverse_adj[source];
         }
-    } else {
-        // going backward
-        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-            for (auto labelTarget : in->reverse_adj[source]) {
 
-                auto label = labelTarget.first;
-                auto target = labelTarget.second;
+        std::sort(sourceVec.begin(), sourceVec.end(), SimpleGraph::sortPairs);
 
-                if (label == projectLabel)
-                    out->addEdge(source, target, label);
+        uint32_t prevTarget = 0;
+        uint32_t prevLabel = 0;
+        bool first = true;
+
+        for (const auto &labelTgtPair : sourceVec) {
+
+            auto label = labelTgtPair.first;
+            auto target = labelTgtPair.second;
+
+            if (label == projectLabel && (first || !(prevTarget == labelTgtPair.second && prevLabel == labelTgtPair.first))) {
+                first = false;
+                prevTarget = labelTgtPair.second;
+                prevLabel = labelTgtPair.first;
+                out->addEdge(source, target, label);
             }
         }
     }

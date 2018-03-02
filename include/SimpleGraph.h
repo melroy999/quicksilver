@@ -38,6 +38,7 @@ public:
     void setNoVertices(uint32_t n);
     void setNoLabels(uint32_t noLabels);
 
+    static bool sortPairs(const std::pair<uint32_t, uint32_t> &a, const std::pair<uint32_t, uint32_t> &b);
 };
 
 #endif //QS_SIMPLEGRAPH_H
